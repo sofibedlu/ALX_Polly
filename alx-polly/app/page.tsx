@@ -5,14 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Layout } from '@/components/layout/Layout';
-import { AuthUser } from '@/types';
-
-// Mock user - replace with actual auth state
-const mockUser: AuthUser | null = null;
+import { useAuth } from '@/hooks/use-auth';
 
 export default function Home() {
+  const { user } = useAuth();
+  
   return (
-    <Layout user={mockUser}>
+    <Layout user={user}>
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
         {/* Hero Section */}
         <section className="py-20 px-4 sm:px-6 lg:px-8">

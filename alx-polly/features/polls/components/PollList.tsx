@@ -1,8 +1,14 @@
 'use client';
 
-import { PollListProps } from '@/types';
+import { PollWithAuthor } from '@/lib/supabase/types';
 import { PollCard } from './PollCard';
 import { Card, CardContent } from '@/components/ui/card';
+
+interface PollListProps {
+  polls: PollWithAuthor[];
+  isLoading?: boolean;
+  onPollClick?: (pollId: string) => void;
+}
 
 export function PollList({ polls, isLoading = false, onPollClick }: PollListProps) {
   if (isLoading) {

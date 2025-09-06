@@ -13,10 +13,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { AuthUser } from '@/types';
+import { User } from '@supabase/supabase-js';
 
 interface HeaderProps {
-  user?: AuthUser | null;
+  user?: User | null;
   onLogin?: () => void;
   onLogout?: () => void;
 }
@@ -48,6 +48,12 @@ export function Header({ user, onLogin, onLogout }: HeaderProps) {
             >
               Create Poll
             </Link>
+            <Link 
+              href="/demo" 
+              className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+            >
+              Demo
+            </Link>
           </nav>
         </div>
 
@@ -59,23 +65,23 @@ export function Header({ user, onLogin, onLogout }: HeaderProps) {
               </Button>
               
               <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={user.avatar} alt={user.name} />
-                      <AvatarFallback>{user.name.charAt(0).toUpperCase()}</AvatarFallback>
-                    </Avatar>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56" align="end" forceMount>
-                  <DropdownMenuLabel className="font-normal">
-                    <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium leading-none">{user.name}</p>
-                      <p className="text-xs leading-none text-muted-foreground">
-                        @{user.username}
-                      </p>
-                    </div>
-                  </DropdownMenuLabel>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={user.user_metadata?.avatar_url} alt={user.user_metadata?.name || user.email} />
+                        <AvatarFallback>{(user.user_metadata?.name || user.email || 'U').charAt(0).toUpperCase()}</AvatarFallback>
+                      </Avatar>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-56" align="end" forceMount>
+                    <DropdownMenuLabel className="font-normal">
+                      <div className="flex flex-col space-y-1">
+                        <p className="text-sm font-medium leading-none">{user.user_metadata?.name || 'User'}</p>
+                        <p className="text-xs leading-none text-muted-foreground">
+                          {user.email}
+                        </p>
+                      </div>
+                    </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
                     <Link href="/profile">Profile</Link>

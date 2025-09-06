@@ -10,7 +10,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CreatePollForm as CreatePollFormType } from '@/types';
+import { createPoll } from '@/lib/api/polls';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/hooks/use-auth';
 
 const createPollSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters'),
@@ -22,12 +24,14 @@ const createPollSchema = z.object({
 });
 
 interface CreatePollFormProps {
-  onSubmit: (data: CreatePollFormType) => void;
-  isLoading?: boolean;
-  error?: string;
+  onSuccess?: (pollId: string) => void;
 }
 
-export function CreatePollForm({ onSubmit, isLoading = false, error }: CreatePollFormProps) {
+export function CreatePollForm({ onSuccess }: CreatePollFormProps) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+  const { user } = useAuth();
   const {
     register,
     control,
@@ -61,6 +65,35 @@ export function CreatePollForm({ onSubmit, isLoading = false, error }: CreatePol
   const removeOption = (index: number) => {
     if (fields.length > 2) {
       remove(index);
+    }
+  };
+
+  const onSubmit = async (data: z.infer<typeof createPollSchema>) => {
+    if (!user) {
+      setError('You must be logged in to create a poll');
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const result = await createPoll(data, user.id);
+
+      if (result.success) {
+        if (onSuccess) {
+          onSuccess(result.data.poll.id);
+        } else {
+          router.push(`/polls/${result.data.poll.id}`);
+        }
+      } else {
+        setError(result.error || 'Failed to create poll');
+      }
+    } catch (err) {
+      setError('An unexpected error occurred');
+      console.error('Error creating poll:', err);
+    } finally {
+      setIsLoading(false);
     }
   };
 

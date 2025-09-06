@@ -5,8 +5,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { PollCardProps } from '@/types';
-import { formatDistanceToNow } from 'date-fns';
+import { PollWithAuthor } from '@/lib/supabase/types';
+import { formatRelativeTime } from '@/lib/utils/format';
+
+interface PollCardProps {
+  poll: PollWithAuthor;
+  onVote?: (pollId: string, optionId: string) => void;
+  onEdit?: (pollId: string) => void;
+  onDelete?: (pollId: string) => void;
+}
 
 export function PollCard({ poll, onVote, onEdit, onDelete }: PollCardProps) {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
@@ -23,11 +30,12 @@ export function PollCard({ poll, onVote, onEdit, onDelete }: PollCardProps) {
   };
 
   const getVotePercentage = (votes: number) => {
-    if (poll.totalVotes === 0) return 0;
-    return Math.round((votes / poll.totalVotes) * 100);
+    // For now, we don't have vote counts in the basic poll query
+    // This would need to be updated when we add vote statistics
+    return 0;
   };
 
-  const isExpired = poll.expiresAt && new Date(poll.expiresAt) < new Date();
+  const isExpired = poll.expires_at && new Date(poll.expires_at) < new Date();
 
   return (
     <Card className="w-full hover:shadow-md transition-shadow">
@@ -48,50 +56,22 @@ export function PollCard({ poll, onVote, onEdit, onDelete }: PollCardProps) {
         
         <div className="flex items-center space-x-2 text-sm text-muted-foreground">
           <Avatar className="h-6 w-6">
-            <AvatarImage src={poll.author.avatar} alt={poll.author.name} />
+            <AvatarImage src={poll.author.avatar_url || undefined} alt={poll.author.name} />
             <AvatarFallback>{poll.author.name.charAt(0).toUpperCase()}</AvatarFallback>
           </Avatar>
           <span>by {poll.author.name}</span>
           <span>•</span>
-          <span>{formatDistanceToNow(new Date(poll.createdAt), { addSuffix: true })}</span>
+          <span>{formatRelativeTime(poll.created_at)}</span>
           <span>•</span>
-          <span>{poll.totalVotes} votes</span>
+          <span>0 votes</span>
         </div>
       </CardHeader>
       
       <CardContent className="space-y-4">
-        <div className="space-y-2">
-          {poll.options.map((option) => {
-            const percentage = getVotePercentage(option.votes);
-            const isSelected = selectedOption === option.id;
-            
-            return (
-              <div key={option.id} className="space-y-1">
-                <Button
-                  variant={isSelected ? "default" : "outline"}
-                  className="w-full justify-start h-auto p-3"
-                  onClick={() => handleVote(option.id)}
-                  disabled={isExpired || (hasVoted && !poll.allowMultipleVotes)}
-                >
-                  <div className="flex items-center justify-between w-full">
-                    <span className="text-left">{option.text}</span>
-                    <span className="text-sm font-medium">
-                      {option.votes} ({percentage}%)
-                    </span>
-                  </div>
-                </Button>
-                
-                {hasVoted && (
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div
-                      className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${percentage}%` }}
-                    />
-                  </div>
-                )}
-              </div>
-            );
-          })}
+        <div className="text-center py-4">
+          <p className="text-gray-600">
+            Click to view poll details and vote
+          </p>
         </div>
 
         {(onEdit || onDelete) && (

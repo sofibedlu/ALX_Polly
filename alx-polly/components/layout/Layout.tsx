@@ -3,11 +3,11 @@
 import { ReactNode } from 'react';
 import { Header } from './Header';
 import { Footer } from './Footer';
-import { AuthUser } from '@/types';
+import { User } from '@supabase/supabase-js';
 
 interface LayoutProps {
   children: ReactNode;
-  user?: AuthUser | null;
+  user?: User | null;
   onLogin?: () => void;
   onLogout?: () => void;
 }
