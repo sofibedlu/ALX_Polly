@@ -9,19 +9,20 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoginForm as LoginFormType } from '@/types';
+import { useSupabaseClient } from '@supabase/auth-helpers-react';
+import { useRouter } from 'next/navigation';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
-interface LoginFormProps {
-  onSubmit: (data: LoginFormType) => void;
-  isLoading?: boolean;
-  error?: string;
-}
+export function LoginForm() {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const supabase = useSupabaseClient();
+  const router = useRouter();
 
-export function LoginForm({ onSubmit, isLoading = false, error }: LoginFormProps) {
   const {
     register,
     handleSubmit,
@@ -29,6 +30,21 @@ export function LoginForm({ onSubmit, isLoading = false, error }: LoginFormProps
   } = useForm<LoginFormType>({
     resolver: zodResolver(loginSchema),
   });
+
+  const onSubmit = async (data: LoginFormType) => {
+    setIsLoading(true);
+    setError(null);
+
+    const { error } = await supabase.auth.signInWithPassword(data);
+
+    if (error) {
+      setError(error.message);
+    } else {
+      router.push('/');
+    }
+
+    setIsLoading(false);
+  };
 
   return (
     <Card className="w-full max-w-md mx-auto">

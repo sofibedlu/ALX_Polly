@@ -8,6 +8,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { RegisterForm as RegisterFormType } from '@/types';
+import { useSupabaseClient } from '@supabase/auth-helpers-react';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 const registerSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -20,13 +23,12 @@ const registerSchema = z.object({
   path: ["confirmPassword"],
 });
 
-interface RegisterFormProps {
-  onSubmit: (data: RegisterFormType) => void;
-  isLoading?: boolean;
-  error?: string;
-}
+export function RegisterForm() {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const supabase = useSupabaseClient();
+  const router = useRouter();
 
-export function RegisterForm({ onSubmit, isLoading = false, error }: RegisterFormProps) {
   const {
     register,
     handleSubmit,
@@ -34,6 +36,30 @@ export function RegisterForm({ onSubmit, isLoading = false, error }: RegisterFor
   } = useForm<RegisterFormType>({
     resolver: zodResolver(registerSchema),
   });
+
+  const onSubmit = async (data: RegisterFormType) => {
+    setIsLoading(true);
+    setError(null);
+
+    const { error } = await supabase.auth.signUp({
+      email: data.email,
+      password: data.password,
+      options: {
+        data: {
+          username: data.username,
+          name: data.name,
+        },
+      },
+    });
+
+    if (error) {
+      setError(error.message);
+    } else {
+      router.push('/');
+    }
+
+    setIsLoading(false);
+  };
 
   return (
     <Card className="w-full max-w-md mx-auto">
